@@ -1,0 +1,32 @@
+#pragma kernel Terrain_F1
+
+RWStructuredBuffer<float> points;
+
+float length;
+float height;
+float width;
+
+float3 chunkPosition;
+
+float value;
+
+int numPointsPerXAxis;
+int numPointsPerYAxis;
+int numPointsPerZAxis;
+
+float f1(float x, float y)
+{
+    return (0.4f + pow(abs(sin(pow(y * y + x * x, 0.5f)) / pow(y * y + x * x, 0.5f)), 1.0f / (value * 0.3f))) / 1.4f;
+}
+
+[numthreads(8, 8, 8)]
+void Terrain_F1(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= numPointsPerXAxis || id.y >= numPointsPerYAxis || id.z >= numPointsPerZAxis)
+        return;
+
+    float thisHeight = thisHeight = (numPointsPerYAxis - 1) * f1((float) (id.x - (float) (numPointsPerXAxis - 1) / 2.0f + chunkPosition.x + value) * 0.5f,
+						(float) (id.z - (float) (numPointsPerZAxis - 1) / 2.0f + chunkPosition.z + value) * 0.5f);
+
+    points[id.x * numPointsPerXAxis * numPointsPerZAxis + id.z * numPointsPerZAxis + id.y] = thisHeight - (float) id.y;
+}

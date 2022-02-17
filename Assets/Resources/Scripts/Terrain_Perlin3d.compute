@@ -1,0 +1,32 @@
+#pragma kernel Terrain_Perlin3d
+#include "/Include/Noise.compute"
+
+RWStructuredBuffer<float> points;
+
+float length;
+float height;
+float width;
+
+float3 chunkPosition;
+
+float noiseLimit;
+float value;
+
+int numPointsPerXAxis;
+int numPointsPerYAxis;
+int numPointsPerZAxis;
+
+[numthreads(8, 8, 8)]
+void Terrain_Perlin3d(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= numPointsPerXAxis || id.y >= numPointsPerYAxis || id.z >= numPointsPerZAxis)
+        return;
+
+    float size = 0.06f;
+    float thisHeight = abs(snoise(float3((id.x * length + chunkPosition.x + value) * size, 
+    (id.y * height + chunkPosition.y + value) * size,
+    (id.z * length + chunkPosition.z + value) * size))); // get all three(3) permutations of noise for x,y and z
+
+    if (thisHeight < noiseLimit)
+        points[id.x * numPointsPerXAxis * numPointsPerZAxis + id.z * numPointsPerZAxis + id.y] = 1.5f * thisHeight;
+}

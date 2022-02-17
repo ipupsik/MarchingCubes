@@ -1,0 +1,26 @@
+#pragma kernel Terrain_Perlin2d
+#include "/Include/Noise.compute"
+
+RWStructuredBuffer<float> points;
+
+float length;
+float height;
+float width;
+
+float3 chunkPosition;
+float value;
+
+int numPointsPerXAxis;
+int numPointsPerYAxis;
+int numPointsPerZAxis;
+
+[numthreads(8, 8, 8)]
+void Terrain_Perlin2d(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= numPointsPerXAxis || id.y >= numPointsPerYAxis || id.z >= numPointsPerZAxis)
+        return;
+
+    float thisHeight = (numPointsPerYAxis - 1) * abs(snoise(float3((id.x * length + chunkPosition.x + value) * 0.1f, (id.z * width + chunkPosition.z) * 0.1f, 0.5f)));
+
+    points[id.x * numPointsPerXAxis * numPointsPerZAxis + id.z * numPointsPerZAxis + id.y] = (float)id.y - thisHeight;
+}

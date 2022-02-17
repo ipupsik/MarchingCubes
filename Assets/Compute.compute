@@ -1,0 +1,41 @@
+#pragma kernel CSMain
+
+RWTexture2D<float4> Result;
+
+float Resolution;
+float Size;
+
+float complex_abs(float2 z)
+{
+    return sqrt(z.x * z.x + z.y * z.y);
+}
+
+float2 complex_sqr(float2 value)
+{
+    return float2(value.x * value.x - value.y * value.y, 2 * value.x * value.y);
+}
+
+[numthreads(8,8,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    float x = id.x / Resolution;
+    float y = id.y / Resolution;
+
+    int i = 0;
+    float2 z = float2(0, 0);
+    while (i < 100 && complex_abs(z) < 2.0f)
+    {
+        z = complex_sqr(z) + float2(1.0f * x / Size + -0.743643900055f, 1.0f * y / Size + 0.131825890901f);
+        i += 1;
+    }
+
+    if (complex_abs(z) < 2.0f) 
+    {
+        Result[id.xy] = float4(0.0f, 0.0f, 0.0f, 1.0f);
+    }
+    else
+    {
+        float Coef = 2.0f;
+        Result[id.xy] = float4(1.0f * i / 100.0f * Coef * 0.26f, 1.0f * i / 100.0f * Coef * 0.3f, 1.0f * i / 100.0f * Coef, 1.0f);
+    }
+}
